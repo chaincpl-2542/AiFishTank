@@ -1,16 +1,15 @@
 import pygame
 import random
-import math
 import pygame_gui
 from food import Food
 from fish import Fish
+from giantFish import GiantFish
 
 WIDTH = 1280
 HEIGHT = 720
 
-NUMBER_AGENT = 80
-
-
+MAX_FISH = 80
+MAX_GIANT_FISH = 5
 MAXFOOD = 5
 
 #-------------Setup-------------
@@ -21,7 +20,8 @@ running = True
 
 font = pygame.font.Font(None, 36)
 
-fishs = [Fish(random.uniform(0,WIDTH),random.uniform(0,HEIGHT),screen) for i in range(NUMBER_AGENT)]
+fishs = [Fish(random.uniform(0,WIDTH),random.uniform(0,HEIGHT),screen) for i in range(MAX_FISH)]
+giantFishs = [GiantFish(random.uniform(0,WIDTH),random.uniform(0,HEIGHT),screen) for i in range(MAX_GIANT_FISH)]
 foods = []
 
 gui_manager = pygame_gui.UIManager((WIDTH,HEIGHT))
@@ -47,10 +47,18 @@ while running:
         fish.alignment(fishs)
         fish.update()
         fish.draw()
+        fish.fishOutOfArea()
+        for giantFish in giantFishs:
+            fish.findGiantFish(giantFish.position)
         
         if(len(foods) > 0):
             for food in foods:
                 fish.findFood(food.foodPosition,food)
+                
+    for giantFish in giantFishs:
+        giantFish.update()
+        giantFish.draw()
+        giantFish.fishOutOfArea()
     
     if(len(foods) < MAXFOOD):
         if pygame.mouse.get_pressed()[0]:
@@ -61,18 +69,6 @@ while running:
             food.draw()
                 
     foods = [food for food in foods if not food.isEat]    
-            
-    for fish in fishs:
-        if(fish.position.x > WIDTH):
-            fish.position.x = 0
-        elif(fish.position.x < 0):
-             fish.position.x = WIDTH
-        if(fish.position.y > HEIGHT):
-            fish.position.y = 0
-        elif(fish.position.y < 0):
-              fish.position.y = HEIGHT
-
-    
         
     fps = int(clock.get_fps())
     fps_text = font.render(f"FPS: {fps}", True, pygame.Color('white'))

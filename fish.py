@@ -8,6 +8,8 @@ ALIGNMENT_FACTOR = 0.1
 SEPARATION_FACTOR = 0.05
 SEPARATION_DISTANCE = 20
 AGENT_RANGE = 40
+SIZE = 7
+COLOR = (6,87,185)
 
 class Fish:
     def __init__(self,x,y,screen) -> None:
@@ -73,12 +75,12 @@ class Fish:
                     agent_in_range_count += 1
     
         if agent_in_range_count > 0:
-            v /= agent_in_range_count  # Calculate average velocity
-            alignment_force = v * ALIGNMENT_FACTOR  # Apply alignment force
+            v /= agent_in_range_count
+            alignment_force = v * ALIGNMENT_FACTOR 
             self.apply_force(alignment_force.x, alignment_force.y)
     
     def draw(self):
-        pygame.draw.circle(self.screen,"red",self.position,8)
+        pygame.draw.circle(self.screen,COLOR,self.position,SIZE)
         
     def findFood(self, foodPosition,food):
         dist = self.position.distance_to(foodPosition)
@@ -89,3 +91,17 @@ class Fish:
             
             if(dist < 5):
                 food.eaten()
+                
+    def findGiantFish(self,giantFishsPosition):
+        dist = self.position.distance_to(giantFishsPosition)    
+        print(dist)
+        
+    def fishOutOfArea(self):
+        if(self.position.x > self.screen.get_width()):
+            self.position.x = 0
+        elif(self.position.x < 0):
+            self.position.x = self.screen.get_width()
+        if(self.position.y > self.screen.get_height()):
+            self.position.y = 0
+        elif(self.position.y < 0):
+            self.position.y = self.screen.get_height()
