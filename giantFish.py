@@ -1,11 +1,8 @@
 import pygame
 import random
 
-MAX_SPEED = 2
+MAX_SPEED = 1
 
-MIN_AGENT_RANGE = 40
-MAX_AGENT_RANGE = 100
-FORCE = 5
 SIZE = 20
 COLOR = (194,25,8)
 
@@ -36,9 +33,7 @@ class GiantFish:
     
     def draw(self):
         pygame.draw.circle(self.screen,COLOR,self.position,SIZE)
-        pygame.draw.circle(self.screen, COLOR, self.position, MIN_AGENT_RANGE,2)
-        pygame.draw.circle(self.screen, COLOR, self.position, MAX_AGENT_RANGE,3)
-        
+
     def fishOutOfArea(self):
         if(self.position.x > self.screen.get_width()):
             self.position.x = 0
