@@ -1,13 +1,21 @@
 import pygame
 import random
 
-MAX_SPEED = 7
+MAX_SPEED = 4
 
 COHERENCE_FACTOR = 0.01
 ALIGNMENT_FACTOR = 0.1
 SEPARATION_FACTOR = 0.05
 SEPARATION_DISTANCE = 20
+
 AGENT_RANGE = 40
+
+AGENT_FOOD_RANGE = 100
+
+MIN_AGENT_RANGE = 40
+MAX_AGENT_RANGE = 80
+
+OBSCRACT_FORCE = 3
 SIZE = 7
 COLOR = (6,87,185)
 
@@ -18,6 +26,7 @@ class Fish:
         self.acceleration = pygame.Vector2(0,0)
         self.mess = 1
         self.screen = screen
+        self.force = 0
         
     def update(self):
         self.velocity += self.acceleration
@@ -84,17 +93,25 @@ class Fish:
         
     def findFood(self, foodPosition,food):
         dist = self.position.distance_to(foodPosition)
-        if(dist < 100):
+        if(dist < AGENT_FOOD_RANGE):
             velocity_x = foodPosition.x - self.position.x
             velocity_y = foodPosition.y - self.position.y
             self.velocity = pygame.Vector2(velocity_x,velocity_y)
             
             if(dist < 5):
-                food.eaten()
+                food.eaten()   
                 
     def findGiantFish(self,giantFishsPosition):
         dist = self.position.distance_to(giantFishsPosition)    
-        print(dist)
+        if(dist < MAX_AGENT_RANGE and dist > MIN_AGENT_RANGE):
+            self.force = OBSCRACT_FORCE - (dist / MAX_AGENT_RANGE) * OBSCRACT_FORCE
+            self.velocity.x += self.force * (self.position.x - giantFishsPosition.x) / dist
+            self.velocity.y += self.force * (self.position.y - giantFishsPosition.y) / dist
+            
+        elif(dist < MIN_AGENT_RANGE):
+            self.force = OBSCRACT_FORCE * 5
+
+
         
     def fishOutOfArea(self):
         if(self.position.x > self.screen.get_width()):
