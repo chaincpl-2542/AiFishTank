@@ -6,6 +6,8 @@ MAX_SPEED = 2
 SIZE = 20
 COLOR = (194,25,8)
 
+shadow_radius = 50
+
 class GiantSlime:
     def __init__(self,x,y,screen) -> None:
         self.position = pygame.Vector2(x,y)
@@ -57,6 +59,10 @@ class GiantSlime:
     
     def draw(self):
         # pygame.draw.circle(self.screen,COLOR,self.position,SIZE)
+        shadow_surface = pygame.Surface((shadow_radius * 2, shadow_radius), pygame.SRCALPHA)
+        pygame.draw.ellipse(shadow_surface, (0, 0, 0, 100), (0, 0, shadow_radius * 2, shadow_radius))
+        shadow_pos = (self.position.x - 50, self.position.y - 5)
+        self.screen.blit(shadow_surface, shadow_pos)
         self.screen.blit(self.agent_frame, self.position - pygame.Vector2(48, 48))
 
 

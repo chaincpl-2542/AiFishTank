@@ -1,6 +1,6 @@
 import pygame
 
-
+shadow_radius = 10
 class Food:
     def __init__(self,foodPosition,screen):
         self.foodPosition = pygame.Vector2(foodPosition.x,foodPosition.y)
@@ -20,6 +20,12 @@ class Food:
                 
         
     def draw(self):
+        
+        shadow_surface = pygame.Surface((shadow_radius * 2, shadow_radius), pygame.SRCALPHA)
+        pygame.draw.ellipse(shadow_surface, (0, 0, 0, 100), (0, 0, shadow_radius * 2, shadow_radius))
+        shadow_pos = (self.foodPosition.x - 10, self.foodPosition.y + 8)
+        self.screen.blit(shadow_surface, shadow_pos)
+        
         self.screen.blit(self.agent_frame, self.foodPosition - pygame.Vector2(16, 16)  )
         # pygame.draw.circle(self.screen,"brown",self.foodPosition,5)
         

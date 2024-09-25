@@ -4,13 +4,16 @@ import pygame_gui
 from food import Food
 from slime import Slime
 from giantSlime import GiantSlime
+from floorGenerate import Floor
 
 WIDTH = 1280
 HEIGHT = 720
+TILE_SIZE = 128
+
 
 MAX_SLIME = 100
 MAX_GIANT_SLIME = 8
-MAXFOOD = 5
+MAXFOOD = 30
 
 #-------------Setup-------------
 pygame.init()
@@ -23,6 +26,8 @@ font = pygame.font.Font(None, 25)
 slimes = [Slime(random.uniform(0,WIDTH),random.uniform(0,HEIGHT),screen) for i in range(MAX_SLIME)]
 giantSlimes = [GiantSlime(random.uniform(0,WIDTH),random.uniform(0,HEIGHT),screen) for i in range(MAX_GIANT_SLIME)]
 foods = []
+floors = []
+floor = Floor(screen)
 
 gui_manager = pygame_gui.UIManager((WIDTH,HEIGHT))
 clock = pygame.time.Clock()
@@ -41,21 +46,32 @@ while running:
             
     screen.fill("gray")
     
+    for x in range(TILE_SIZE + 1):  # +1 to cover any edge overflow
+        for y in range(TILE_SIZE + 1):
+            floor.draw(x,y,TILE_SIZE)    
+    
+    
     keys = pygame.key.get_pressed()
     if (keys[pygame.K_q]):
         if(showDebugMode == True):
             showDebugMode = False
         else:
             showDebugMode = True
-    
+            
+    dt = pygame.time.get_ticks()
     for slime in slimes:
         slime.coherence(slimes)
         slime.separation(slimes)
         slime.alignment(slimes)
-        slime.update()
+        slime.update(dt)
         slime.draw(showDebugMode)
         slime.slimeOutOfArea()
         slime.update_animation()
+        
+        name_text = font.render(str(round(slime.hunger_value)), True, (0, 0, 0))
+        name_rect = name_text.get_rect(center=(slime.position.x, slime.position.y - 20)) 
+        if(showDebugMode == True):
+            screen.blit(name_text, name_rect)
         
         for giantSlime in giantSlimes:
             slime.find_closest_GiantSlime(giantSlimes)
@@ -73,8 +89,8 @@ while running:
         giantSlime.update_animation()
         giantSlime.slime_name = f"Giant Slime {giantSlimes.index(giantSlime) + 1}"
         
-        name_text = font.render(giantSlime.slime_name, True, (0, 0, 0))  # Adjust text color as needed
-        name_rect = name_text.get_rect(center=(giantSlime.position.x, giantSlime.position.y - 40))  # Adjust offset as needed
+        name_text = font.render(giantSlime.slime_name, True, (0, 0, 0))
+        name_rect = name_text.get_rect(center=(giantSlime.position.x, giantSlime.position.y - 40)) 
         if(showDebugMode == True):
             screen.blit(name_text, name_rect)
     

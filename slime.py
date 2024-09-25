@@ -12,6 +12,9 @@ AGENT_RANGE = 50
 AGENT_FOOD_RANGE = 120
 AGENT_EAT_RANGE = 8
 
+MAX_HUNGER_VALUE = 100
+MIN_HUNGER_RATE = 3
+MAX_HUNGER_RATE = 10
 
 MIN_AGENT_RANGE = 50
 MAX_AGENT_RANGE = 100
@@ -23,6 +26,8 @@ COLOR = (6,87,185)
 giantSlime = None
 cooldown_duration = 2000
 cooldown_counter = 0
+
+shadow_radius = 16
 
 
 class Slime:
@@ -42,18 +47,42 @@ class Slime:
         self.time = 0
         self.animation_frame_rate = 3
         
+        self.hunger_value = MAX_HUNGER_VALUE
+        self.hunger_decrease_rate = random.uniform(MIN_HUNGER_RATE,MAX_HUNGER_RATE)
+        self.last_hunger_time = pygame.time.get_ticks()
+        self.isHungry = False
+        
         self.slime_sprite = pygame.image.load("./assets/SlimeAnimation.png")
+        self.slime_sprite_red = pygame.image.load("./assets/SlimeAnimationRed.png")
+        
+        self.agent_frame = self.slime_sprite_red.subsurface(pygame.Rect( self.fx * self.frame_size, self.fy * self.frame_size,
+                                                                    self.frame_size,
+                                                                    self.frame_size))
+        
         self.agent_frame = self.slime_sprite.subsurface(pygame.Rect( self.fx * self.frame_size, self.fy * self.frame_size,
                                                                     self.frame_size,
                                                                     self.frame_size))
                 
-    def update(self):
+    def update(self,dt):
         self.velocity += self.acceleration
         if(self.velocity.length() >= MAX_SPEED):
             self.velocity = self.velocity.normalize() * MAX_SPEED
         self.position += self.velocity
         self.acceleration = pygame.Vector2(0,0)
         
+        current_time = dt
+        if(dt - self.last_hunger_time > 1000):
+            self.hunger_value -= self.hunger_decrease_rate
+            self.last_hunger_time = current_time
+            
+        #print(str(dt) + " : " + str(self.last_hunger_time) + " : " + str((dt - self.last_hunger_time)))   
+        
+        if(self.hunger_value <= 0):
+            self.hunger_value = 0
+            self.isHungry = True
+        else:
+            self.isHungry = False
+    
         if abs(self.velocity.x) > abs(self.velocity.y):
             if(self.velocity.x > 0):
                 self.fy = 3
@@ -64,7 +93,7 @@ class Slime:
                 self.fy = 0
             elif(self.velocity.y < 0):
                 self.fy = 1
-            
+        
     def apply_force(self,x,y): 
         force = pygame.Vector2(x,y)
         self.acceleration += force / self.mess
@@ -123,22 +152,29 @@ class Slime:
     
     def draw(self,isShowDebug):
         # pygame.draw.circle(self.screen,COLOR,self.position,SIZE)
-        self.screen.blit(self.agent_frame, self.position - pygame.Vector2(16, 16)  )
+        shadow_surface = pygame.Surface((shadow_radius * 2, shadow_radius), pygame.SRCALPHA)
+        pygame.draw.ellipse(shadow_surface, (0, 0, 0, 100), (0, 0, shadow_radius * 2, shadow_radius))
+        shadow_pos = (self.position.x - 16, self.position.y)
+        self.screen.blit(shadow_surface, shadow_pos)
+        self.screen.blit(self.agent_frame, self.position - pygame.Vector2(16, 16))
+        
         if(isShowDebug == True):
             pygame.draw.line(self.screen, "red", self.position, self.position + self.velocity * 10 )
-            
-
         
     def findFood(self, foodPosition,food):
-        dist = self.position.distance_to(foodPosition)
-        if(self.tooCloseGiantSlime == False):
-            if(dist < AGENT_FOOD_RANGE ):
-                velocity_x = foodPosition.x - self.position.x
-                velocity_y = foodPosition.y - self.position.y
-                self.velocity = pygame.Vector2(velocity_x,velocity_y)
-                
-        if(dist < AGENT_EAT_RANGE):
-            food.eaten()        
+        if(self.isHungry):
+            dist = self.position.distance_to(foodPosition)
+            if(self.tooCloseGiantSlime == False):
+                if(dist < AGENT_FOOD_RANGE ):
+                    velocity_x = foodPosition.x - self.position.x
+                    velocity_y = foodPosition.y - self.position.y
+                    self.velocity = pygame.Vector2(velocity_x,velocity_y)
+                    
+            if(dist < AGENT_EAT_RANGE):
+                food.eaten()
+                self.hunger_value = MAX_HUNGER_VALUE
+                self.hunger_decrease_rate = random.uniform(MIN_HUNGER_RATE,MAX_HUNGER_RATE)
+              
         
                 
     def findGiantSlime(self):
@@ -181,10 +217,16 @@ class Slime:
             self.fx = self.fx + 1
             self.fx = self.fx%4
             
-            self.agent_frame = self.slime_sprite.subsurface(pygame.Rect( self.fx * self.frame_size, 
-                                                    self.fy * self.frame_size,
-                                                    self.frame_size,
-                                                    self.frame_size))
+            if(self.isHungry == False):
+                self.agent_frame = self.slime_sprite.subsurface(pygame.Rect( self.fx * self.frame_size, 
+                                                        self.fy * self.frame_size,
+                                                        self.frame_size,
+                                                        self.frame_size))
+            else:
+                self.agent_frame = self.slime_sprite_red.subsurface(pygame.Rect( self.fx * self.frame_size, 
+                                                        self.fy * self.frame_size,
+                                                        self.frame_size,
+                                                        self.frame_size))
             
             self.time = 0
         else:
