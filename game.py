@@ -150,7 +150,7 @@ pygame.init()
 ##
 # load assets
 ##
-agent_sprite = pygame.image.load("./White Cow Walk.png")
+agent_sprite = pygame.image.load("./assets/White Cow Walk.png")
 
 
 # Create a window with the specified dimensions
