@@ -13,7 +13,7 @@ TILE_SIZE = 128
 
 MAX_SLIME = 100
 MAX_GIANT_SLIME = 8
-MAXFOOD = 30
+MAXFOOD = 50
 
 #-------------Setup-------------
 pygame.init()
@@ -79,7 +79,8 @@ while running:
             
         if(len(foods) > 0):
             for food in foods:
-                slime.findFood(food.foodPosition,food)
+                slime.find_closest_Food(foods)
+                slime.findFood()
                 
                 
     for giantSlime in giantSlimes:

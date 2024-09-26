@@ -39,6 +39,7 @@ class Slime:
         self.screen = screen
         self.force = 0
         self.closest_GiantSlime = None
+        self.closest_Food = None
         self.tooCloseGiantSlime = False
         
         self.frame_size = 32
@@ -135,20 +136,21 @@ class Slime:
         self.apply_force(separation_force.x,separation_force.y)
     
     def alignment(self, agents):
-        v = pygame.Vector2(0,0)
-        agent_in_range_count = 0
-        for agent in agents:
-            if(agent != self):
-                dist = self.position.distance_to(agent.position)
-                if(self.tooCloseGiantSlime == False):
-                    if (dist < AGENT_RANGE):
-                        v += agent.velocity
-                        agent_in_range_count += 1
-    
-        if agent_in_range_count > 0:
-            v /= agent_in_range_count
-            alignment_force = v * ALIGNMENT_FACTOR 
-            self.apply_force(alignment_force.x, alignment_force.y)
+        if(self.isHungry):
+            v = pygame.Vector2(0,0)
+            agent_in_range_count = 0
+            for agent in agents:
+                if(agent != self):
+                    dist = self.position.distance_to(agent.position)
+                    if(self.tooCloseGiantSlime == False):
+                        if (dist < AGENT_RANGE):
+                            v += agent.velocity
+                            agent_in_range_count += 1
+        
+            if agent_in_range_count > 0:
+                v /= agent_in_range_count
+                alignment_force = v * ALIGNMENT_FACTOR 
+                self.apply_force(alignment_force.x, alignment_force.y)
     
     def draw(self,isShowDebug):
         # pygame.draw.circle(self.screen,COLOR,self.position,SIZE)
@@ -161,20 +163,29 @@ class Slime:
         if(isShowDebug == True):
             pygame.draw.line(self.screen, "red", self.position, self.position + self.velocity * 10 )
         
-    def findFood(self, foodPosition,food):
-        if(self.isHungry):
-            dist = self.position.distance_to(foodPosition)
-            if(self.tooCloseGiantSlime == False):
-                if(dist < AGENT_FOOD_RANGE ):
-                    velocity_x = foodPosition.x - self.position.x
-                    velocity_y = foodPosition.y - self.position.y
-                    self.velocity = pygame.Vector2(velocity_x,velocity_y)
-                    
-            if(dist < AGENT_EAT_RANGE):
-                food.eaten()
-                self.hunger_value = MAX_HUNGER_VALUE
-                self.hunger_decrease_rate = random.uniform(MIN_HUNGER_RATE,MAX_HUNGER_RATE)
-              
+    def findFood(self):
+        if(self.closest_Food != None):
+            if(self.isHungry):
+                dist = self.position.distance_to(self.closest_Food.foodPosition)
+                if(self.tooCloseGiantSlime == False):
+                    if(dist < AGENT_FOOD_RANGE ):
+                        velocity_x = self.closest_Food.foodPosition.x - self.position.x
+                        velocity_y = self.closest_Food.foodPosition.y - self.position.y
+                        self.velocity = pygame.Vector2(velocity_x,velocity_y)
+                        
+                if(dist < AGENT_EAT_RANGE):
+                    self.closest_Food.eaten()
+                    self.hunger_value = MAX_HUNGER_VALUE
+                    self.hunger_decrease_rate = random.uniform(MIN_HUNGER_RATE,MAX_HUNGER_RATE)
+    
+    def find_closest_Food(self,foods):
+        closest_distance = float('inf')
+
+        for food in foods:
+            distance = self.position.distance_to(food.foodPosition)
+            if distance < closest_distance:
+                self.closest_Food = food
+                closest_distance = distance
         
                 
     def findGiantSlime(self):
