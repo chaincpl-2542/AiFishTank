@@ -1,5 +1,6 @@
 import pygame
 import random
+import math
 import pygame_gui
 from food import Food
 from slime import Slime
@@ -8,8 +9,9 @@ from floorGenerate import Floor
 
 WIDTH = 1280
 HEIGHT = 720
-TILE_SIZE = 128
-
+TILE_SIZE = 512
+TILE_X = int(math.ceil(1280 / TILE_SIZE))
+TILE_Y = int(math.ceil(720 / TILE_SIZE))
 
 MAX_SLIME = 100
 MAX_GIANT_SLIME = 8
@@ -17,7 +19,9 @@ MAXFOOD = 50
 
 #-------------Setup-------------
 pygame.init()
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+bg = pygame.image.load("./assets/BG_Grass_1280_720.png").convert_alpha()
 clock = pygame.time.Clock()
 running = True
 
@@ -26,7 +30,6 @@ font = pygame.font.Font(None, 25)
 slimes = [Slime(random.uniform(0,WIDTH),random.uniform(0,HEIGHT),screen) for i in range(MAX_SLIME)]
 giantSlimes = [GiantSlime(random.uniform(0,WIDTH),random.uniform(0,HEIGHT),screen) for i in range(MAX_GIANT_SLIME)]
 foods = []
-floors = []
 floor = Floor(screen)
 
 gui_manager = pygame_gui.UIManager((WIDTH,HEIGHT))
@@ -45,11 +48,11 @@ while running:
     gui_manager.draw_ui(screen)
             
     screen.fill("gray")
+    screen.blit(bg,(0,0))
     
-    for x in range(TILE_SIZE + 1):  # +1 to cover any edge overflow
-        for y in range(TILE_SIZE + 1):
-            floor.draw(x,y,TILE_SIZE)    
-    
+    # for y in range(TILE_Y):
+    #     for x in range(TILE_X):
+    #         floor.draw(x * 512 ,y * 512)
     
     keys = pygame.key.get_pressed()
     if (keys[pygame.K_q]):
@@ -109,7 +112,7 @@ while running:
     fps = int(clock.get_fps())
     fps_text = font.render(f"FPS: {fps}", True, pygame.Color('white'))
     screen.blit(fps_text, (WIDTH - fps_text.get_width() - 10, 10))
-    
+
     pygame.display.flip()
     clock.tick(60)
     

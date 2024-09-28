@@ -12,9 +12,9 @@ AGENT_RANGE = 50
 AGENT_FOOD_RANGE = 120
 AGENT_EAT_RANGE = 8
 
-MAX_HUNGER_VALUE = 100
-MIN_HUNGER_RATE = 3
-MAX_HUNGER_RATE = 10
+MAX_HUNGER_VALUE = 120
+MIN_HUNGER_RATE = 2
+MAX_HUNGER_RATE = 15
 
 MIN_AGENT_RANGE = 50
 MAX_AGENT_RANGE = 100
@@ -71,10 +71,11 @@ class Slime:
         self.position += self.velocity
         self.acceleration = pygame.Vector2(0,0)
         
-        current_time = dt
-        if(dt - self.last_hunger_time > 1000):
-            self.hunger_value -= self.hunger_decrease_rate
-            self.last_hunger_time = current_time
+        if(self.isHungry == False):
+            current_time = dt
+            if(dt - self.last_hunger_time > 1000):
+                self.hunger_value -= self.hunger_decrease_rate
+                self.last_hunger_time = current_time
             
         #print(str(dt) + " : " + str(self.last_hunger_time) + " : " + str((dt - self.last_hunger_time)))   
         
@@ -153,7 +154,6 @@ class Slime:
                 self.apply_force(alignment_force.x, alignment_force.y)
     
     def draw(self,isShowDebug):
-        # pygame.draw.circle(self.screen,COLOR,self.position,SIZE)
         shadow_surface = pygame.Surface((shadow_radius * 2, shadow_radius), pygame.SRCALPHA)
         pygame.draw.ellipse(shadow_surface, (0, 0, 0, 100), (0, 0, shadow_radius * 2, shadow_radius))
         shadow_pos = (self.position.x - 16, self.position.y)
@@ -162,6 +162,7 @@ class Slime:
         
         if(isShowDebug == True):
             pygame.draw.line(self.screen, "red", self.position, self.position + self.velocity * 10 )
+            
         
     def findFood(self):
         if(self.closest_Food != None):
@@ -179,13 +180,14 @@ class Slime:
                     self.hunger_decrease_rate = random.uniform(MIN_HUNGER_RATE,MAX_HUNGER_RATE)
     
     def find_closest_Food(self,foods):
-        closest_distance = float('inf')
+        if(self.isHungry):
+            closest_distance = float('inf')
 
-        for food in foods:
-            distance = self.position.distance_to(food.foodPosition)
-            if distance < closest_distance:
-                self.closest_Food = food
-                closest_distance = distance
+            for food in foods:
+                distance = self.position.distance_to(food.foodPosition)
+                if distance < closest_distance:
+                    self.closest_Food = food
+                    closest_distance = distance
         
                 
     def findGiantSlime(self):
@@ -228,17 +230,17 @@ class Slime:
             self.fx = self.fx + 1
             self.fx = self.fx%4
             
-            if(self.isHungry == False):
+            self.time = 0
+        else:
+            self.time = self.time + 1
+            
+        if(self.isHungry == False):
                 self.agent_frame = self.slime_sprite.subsurface(pygame.Rect( self.fx * self.frame_size, 
                                                         self.fy * self.frame_size,
                                                         self.frame_size,
                                                         self.frame_size))
-            else:
-                self.agent_frame = self.slime_sprite_red.subsurface(pygame.Rect( self.fx * self.frame_size, 
-                                                        self.fy * self.frame_size,
-                                                        self.frame_size,
-                                                        self.frame_size))
-            
-            self.time = 0
         else:
-            self.time = self.time + 1
+            self.agent_frame = self.slime_sprite_red.subsurface(pygame.Rect( self.fx * self.frame_size, 
+                                                    self.fy * self.frame_size,
+                                                    self.frame_size,
+                                                    self.frame_size))
